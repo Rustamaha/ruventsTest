@@ -1,0 +1,19 @@
+@mixin custom-scroll-bar {
+  &::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #fff;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #83878a;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #E1E1E1;
+  }
+  // for Firefox
+  scrollbar-color: rgba(211, 216, 238, .5) transparent;
+  scrollbar-width: thin;
+}

@@ -8,10 +8,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["element-plus/global"],
-    "plugins": [
-      "@volar/vue-language-plugin-pug"
-    ]
+    "types": ["element-plus/global"]
   },
 
   "references": [

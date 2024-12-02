@@ -1,3 +1,5 @@
+import type { WordsList as List } from "@/types/words";
+
 export function generateStrings() {
   const ALPHABET_LETTERS = [
     "a",
@@ -34,10 +36,10 @@ export function generateStrings() {
     return c;
   };
 
-  const LENGTH = 2000000;
+  const LENGTH = 10000;
   const WORD_LEN = 100;
 
-  let res: Array<string> = [];
+  const res: List = [];
   let hundred = "";
   for (let a = 0; a < LENGTH; a++) {
     hundred = "";
@@ -48,7 +50,7 @@ export function generateStrings() {
         )
       );
     }
-    res = [...res, hundred];
-    return res;
+    res.push(hundred);
   }
+  return res;
 }

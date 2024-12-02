@@ -36,7 +36,7 @@
     el-card( v-loading="isSearching" )
       el-badge(
         v-if="isFormSubmitted"
-        :value="filteredStrings.length"
+        :value="filteredRecords.length"
         :max="STRINGS_LENGTH"
       )
         el-button(
@@ -45,8 +45,8 @@
         ) {{ submitValue }}
       
       DynamicScroller.search-block__content-text(
-        v-if="filteredStrings.length && areStringsShowed"
-        :items="filteredStrings"
+        v-if="filteredRecords.length && areStringsShowed"
+        :items="filteredRecords"
         :min-item-size="54"
         :buffer="50"
       )
@@ -60,19 +60,18 @@
             span {{ item }}
 </template>
 <script lang="ts" setup>
-import { computed, reactive, ref, onMounted } from "vue";
+import { computed, reactive, ref, onMounted, watch } from "vue";
 import type { FormInstance } from "element-plus";
 import type { WordsList } from "../types/words";
 import { STRINGS_LENGTH } from "../helpers";
 import IconSearch from "@/components/icons/IconSearch.vue";
-
-import { useWordsStore } from "../stores/words.module";
-import { storeToRefs } from "pinia";
-
+import { useWords } from "@/composables/useWords";
+import { useIndexedDB } from "@/composables/useIndexedDB";
 const formRef = ref<FormInstance>();
 const isFormSubmitted = ref(false);
 const areStringsShowed = ref(false);
 const submitValue = ref("");
+const PORTION = 100_000;
 
 const validateForm = reactive({
   word: "",
@@ -83,7 +82,7 @@ const checkString = (
   value: string,
   callback: (arg?: Error | undefined) => void
 ) => {
-  if (value === "") {
+  if (!value) {
     callback(new Error("Word is required"));
   }
   if (/\d/.test(value)) {
@@ -107,32 +106,39 @@ const colors = [
 
 const isDisabled = computed(() => !validateForm.word);
 
-const store = useWordsStore();
+const {
+  wordsList,
+  makeIterations,
+  findSubstrings,
+  filteredRecords,
+  isSearching,
+} = useWords();
 
-const wordsList = computed(() => store.wordsList);
+const { recordsLength, getRecordsLength } = useIndexedDB();
 
-const percentage = computed(() => wordsList.value.length / 100000);
+const wordsListLength = computed(() => wordsList.value.length);
 
-const isSearching = computed(() => store.isSearching);
+watch(wordsListLength, () => {
+  getRecordsLength();
+});
+
+const percentage = computed(() => recordsLength.value / PORTION);
 
 const legendTitle = computed(() =>
   percentage.value === 100
-    ? "Strings successfully uploaded to localStorage"
-    : "Strings are loading to localStorage"
+    ? "Strings successfully uploaded to storage"
+    : "Strings are loading to storage"
 );
 
-const filteredStrings = computed(() => store.filteredStrings);
-
 onMounted(() => {
-  store.checkLocalStore();
-  store.makeIterations();
+  makeIterations();
 });
 
 const submitForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   formEl.validate(async (valid) => {
     if (valid) {
-      store.findSubstrings(validateForm.word);
+      findSubstrings(validateForm.word);
       isFormSubmitted.value = true;
       submitValue.value = validateForm.word;
     } else {
